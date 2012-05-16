@@ -1,5 +1,8 @@
 <?php
 
+/**
+ *
+ */
 abstract class Image
 {
 ////////////////////////////////// Properties \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -8,22 +11,55 @@ abstract class Image
      */
     protected $m_oDimensions;
 
+    /**
+     * @var resource
+     */
     protected $m_rImage;
 
+    /**
+     * @var string
+     */
     protected $m_sType;
+    /**
+     * @var string
+     */
     protected $m_sImageSourcePath;
 
+    /**
+     * @var bool
+     */
     protected $m_bAlpha;
+    /**
+     * @var bool
+     */
     protected $m_bDebug = false;
 
     // Font Default Settings
+    /**
+     * @var int
+     */
     protected $m_iFont = 5;
+    /**
+     * @var string
+     */
     protected $m_sFontDirectory;
+    /**
+     * @var string
+     */
     protected $m_sFontPath;
+    /**
+     * @var int
+     */
     protected $m_iFontAngle = 0;
+    /**
+     * @var integer
+     */
     protected $m_iFontSize;
 
     // GIF min=0 - max=100, PNG 0=no compression -> max quality, 9=max compression -> min quality? What to Do?
+    /**
+     * @var int
+     */
     protected $m_iQuality = 100;
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -43,11 +79,17 @@ abstract class Image
         return $this->m_oDimensions;
     }
 
+    /**
+     * @param $m_bAlpha
+     */
     public function setAlpha($m_bAlpha)
     {
         $this->m_bAlpha = $m_bAlpha;
     }
 
+    /**
+     * @return bool
+     */
     public function getAlpha()
     {
         return $this->m_bAlpha;
@@ -83,31 +125,49 @@ abstract class Image
         return $iWidth;
     }
 
+    /**
+     * @param $m_rImage
+     */
     public function setImage($m_rImage)
     {
         $this->m_rImage = $m_rImage;
     }
 
+    /**
+     * @return resource
+     */
     public function getImage()
     {
         return $this->m_rImage;
     }
 
+    /**
+     * @param $m_sType
+     */
     public function setType($m_sType)
     {
         $this->m_sType = $m_sType;
     }
 
+    /**
+     * @return string
+     */
     public function getType()
     {
         return $this->m_sType;
     }
 
+    /**
+     * @param $m_iQuality
+     */
     public function setQuality($m_iQuality)
     {
         $this->m_iQuality = $m_iQuality;
     }
 
+    /**
+     * @return int
+     */
     public function getQuality()
     {
         $iQuality = $this->m_iQuality;
@@ -122,39 +182,62 @@ abstract class Image
         return $iQuality;
     }
 
+    /**
+     * @param $p_rImage
+     */
     public function setImageResource($p_rImage)
     {
         //@TODO: Check $p_rImage is actually an image resource
         $this->m_rImage = $p_rImage;
     }
 
+    /**
+     * @return resource
+     */
     public function getImageResource()
     {
         return $this->m_rImage;
     }
 
+    /**
+     * @param $p_sImageSourcePath
+     */
     public function setSourcePath($p_sImageSourcePath)
     {
         $this->m_sImageSourcePath = $p_sImageSourcePath;
     }
 
+    /**
+     * @return string
+     */
     public function getSourcePath()
     {
         return $this->m_sImageSourcePath;
     }
 
 
+    /**
+     * @param $p_iFontSize
+     */
     public function setFontSize($p_iFontSize)
     {
         $this->m_iFontSize = (int) $p_iFontSize;
     }
 
+    /**
+     * @return int
+     */
     public function getFontSize()
     {
         return $this->m_iFontSize;
     }
 
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param Dimensions $p_oDimensions
+     * @param $p_sType
+     * @param bool $p_bAlpha
+     */
     public function __construct(Dimensions $p_oDimensions, $p_sType, $p_bAlpha=false)
     {
         $this->setDimensions($p_oDimensions);
@@ -162,6 +245,9 @@ abstract class Image
         $this->setAlpha($p_bAlpha);
     }
 
+    /**
+     * @return Image
+     */
     public function create()
     {
         $this->m_rImage = imagecreatetruecolor($this->getWidth(), $this->getHeight());
@@ -186,6 +272,9 @@ abstract class Image
         return $this;
      }
 
+    /**
+     * @return string
+     */
     public function output()
     {
         $sImage = null;
@@ -215,6 +304,9 @@ abstract class Image
     }
 
 //////////////////////////////// Helper Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param $p_sImageFilePath
+     */
     protected function importFromFile($p_sImageFilePath)
     {
             if(!is_file($p_sImageFilePath))
@@ -250,6 +342,15 @@ abstract class Image
             }#if
         }
 
+    /**
+     * @param $p_iTopLeftX
+     * @param $p_iTopLeftY
+     * @param $p_iBottomRightX
+     * @param $p_iBottomRightY
+     * @param $p_iColor
+     *
+     * @return Image
+     */
     protected function drawRectangleFilled($p_iTopLeftX, $p_iTopLeftY, $p_iBottomRightX, $p_iBottomRightY, $p_iColor)
     {
         imagefilledrectangle($this->getImage(), $p_iTopLeftX, $p_iTopLeftY, $p_iBottomRightX, $p_iBottomRightY, $p_iColor);
@@ -257,6 +358,16 @@ abstract class Image
         return $this;
     }
 
+    /**
+     * @param $p_iTopLeftX
+     * @param $p_iTopLeftY
+     * @param $p_iBottomRightX
+     * @param $iBottomRightY
+     * @param $p_iColor
+     * @param null $p_iWidth
+     *
+     * @return Image
+     */
     protected function drawRectangle($p_iTopLeftX, $p_iTopLeftY, $p_iBottomRightX, $iBottomRightY, $p_iColor, $p_iWidth=null)
     {
         if(isset($p_iWidth))
@@ -331,6 +442,13 @@ abstract class Image
         return $oBoundingBox;
     }
 
+    /**
+     * @param $p_sText
+     * @param $p_iX
+     * @param $p_iY
+     * @param $p_iColor
+     * @param $p_iKerning
+     */
     protected function _writeTextWithKerning($p_sText, $p_iX, $p_iY, $p_iColor, $p_iKerning)
     {
         $iX = $p_iX;
@@ -343,6 +461,17 @@ abstract class Image
         //@TODO: Calculate $aBoundingBox so we can return it;
     }
 
+    /**
+     * @param $p_sText
+     * @param $p_iX
+     * @param $p_iY
+     * @param $p_iColor
+     * @param $p_iKerning
+     *
+     * @return BoundingBox
+     *
+     * @throws Exception
+     */
     protected function writeTextWithKerning($p_sText, $p_iX, $p_iY, $p_iColor, $p_iKerning)
     {
         $iX = $p_iX;
@@ -389,7 +518,8 @@ abstract class Image
      * @param $p_iBorderWidth
      * @param $p_iBorderColor
      * @param $p_iKerning
-     * @return void
+     *
+     * @return BoundingBox
      */
     protected function writeTextWithBorder($p_sText, $p_iX, $p_iY, $p_iColor, $p_iBorderWidth, $p_iBorderColor, $p_iKerning=0)
     {
@@ -405,6 +535,14 @@ abstract class Image
         return $this->writeText($p_sText, $p_iX, $p_iY, $p_iColor, $p_iKerning);
     }
 
+    /**
+     * @param $p_sText
+     * @param $p_iX
+     * @param $p_iY
+     * @param $p_iColor
+     *
+     * @return bool
+     */
     protected function writeString($p_sText, $p_iX, $p_iY, $p_iColor)
     {
         return imagestring(
@@ -445,6 +583,9 @@ abstract class Image
 
 */
 
+    /**
+     * @param string $p_sMethodName
+     */
     protected function debug($p_sMethodName=null)
     {
         if($this->m_bDebug === true)
@@ -465,7 +606,7 @@ abstract class Image
             {
                 case 'create':
 
-                    $iThickness = $this->getWidth()/350;
+                    #$iThickness = $this->getWidth()/350;
                     $this->drawRectangle(
                           0, 0
                         , $this->getWidth()-$iThickness

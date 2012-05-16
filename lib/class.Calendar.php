@@ -1,4 +1,7 @@
 <?php
+/**
+ *
+ */
 class Calendar extends Image
 {
 
@@ -13,8 +16,14 @@ class Calendar extends Image
      */
     protected $m_oOneDay;
 
+    /**
+     * @var
+     */
     protected $m_aColors;
 
+    /**
+     * @var bool
+     */
     protected $m_bDebug=false;
 
     /**
@@ -22,14 +31,23 @@ class Calendar extends Image
      */
     protected $m_aDateCoordinates = array();
 
+    /**
+     * @var array
+     */
     protected $m_aApliedDecorations = array();
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param $p_aColors
+     */
     public function setColors($p_aColors)
     {
         $this->m_aColors = $p_aColors;
     }
 
+    /**
+     * @return array
+     */
     public function getColors()
     {
         return $this->m_aColors;
@@ -49,6 +67,11 @@ class Calendar extends Image
 //  4 px = $this->getWidth()/438.5;
 //  2 px = $this->getWidth()/877;
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param Dimensions $p_oDimensions
+     * @param string $p_sType
+     * @param bool $p_bAlpha
+     */
     public function __construct(Dimensions $p_oDimensions, $p_sType='png', $p_bAlpha=true)
     {
         parent::__construct($p_oDimensions, $p_sType, $p_bAlpha);
@@ -68,6 +91,12 @@ class Calendar extends Image
         $this->buildColors();
     }
 
+    /**
+     * @param array $p_aColorSets
+     * @param array $p_sBackgroundColor
+     *
+     * @return mixed
+     */
     public function buildColors($p_aColorSets = array(), $p_sBackgroundColor=array('0xFF', '0xFF','0xFF'))
     {
 
@@ -111,6 +140,7 @@ class Calendar extends Image
     }
 
     /**
+     * @TODO: Replace $p_aDecorations array with DecorationCollection object
      * @param DateTime $p_oDate
      * @param array[Decoration] $p_aDecorations
      *
@@ -141,6 +171,11 @@ class Calendar extends Image
 
 
 //////////////////////////////// Helper Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param DateTime $p_oDate
+     *
+     * @return DateTime
+     */
     protected static function buildDateForDayNumbers(DateTime $p_oDate)
     {
         $oDate = clone $p_oDate;
@@ -155,6 +190,13 @@ class Calendar extends Image
         return $oDate;
     }
 
+    /**
+     * @param DateTime $oDate
+     * @param $p_iColumnCounter
+     * @param $p_iRowCounter
+     * @param $p_iX
+     * @param $p_iY
+     */
     protected function storeDateCoordinates(DateTime $oDate
         , $p_iColumnCounter, $p_iRowCounter, $p_iX, $p_iY)
     {
@@ -171,6 +213,7 @@ class Calendar extends Image
 
     /**
      * @param Decoration $p_oDecoration
+     *
      * @return DayBlockDimensions
      */
     protected function getDimensionsForDecoration(Decoration $p_oDecoration)
@@ -180,7 +223,7 @@ class Calendar extends Image
 
     /**
      * @param \DateTime $p_oDate
-     * @internal param \Decoration $p_oDecoration
+     *
      * @return DayBlockDimensions
      */
     protected function getDimensionsForDate(DateTime $p_oDate)
@@ -190,6 +233,9 @@ class Calendar extends Image
     }
 
 /////////////////////////////// Writing Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param DateTime $p_oDate
+     */
     protected  function writeDayNumbers(DateTime $p_oDate)
     {
         $oDate = self::buildDateForDayNumbers($p_oDate);
@@ -201,6 +247,7 @@ class Calendar extends Image
 
         foreach($this->m_aDateCoordinates as $oDateCoordinate)
         {
+            /** @var $oDateCoordinate DayBlockDimensions */
             $oDate->add($this->m_oOneDay);
 
             $iX = $oDateCoordinate->getX();
@@ -233,6 +280,9 @@ class Calendar extends Image
         }#foreach
     }
 
+    /**
+     * @param DateTime $p_oDate
+     */
     protected function writeMonth(DateTime $p_oDate)
     {
         $this->m_iFontSize = $this->getWidth()/13.492307692308;
@@ -249,6 +299,9 @@ class Calendar extends Image
         $this->writeText($sMonth, $iX, $iY, $this->m_aColors['black']);
     }
 
+    /**
+     * @param DateTime $p_oDate
+     */
     protected  function writeWeekNumbers(DateTime $p_oDate)
     {
         $oDate = clone $p_oDate;
@@ -286,32 +339,54 @@ class Calendar extends Image
     }
 
 /////////////////////////////// Drawing Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param $p_aDecorations
+     *
+     * @return bool
+     */
     protected function drawDecorations($p_aDecorations)
     {
         return $this->drawDecorationFunction($p_aDecorations, 'drawDecoration');
     }
 
+    /**
+     * @param $p_aDecorations
+     *
+     * @return bool
+     */
     protected function drawDecorationBackgrounds($p_aDecorations)
     {
         return $this->drawDecorationFunction($p_aDecorations, 'drawDecorationBackground');
     }
 
     /**
-     * @param array Decoration $p_aDecorations
+     * @param array $p_aDecorations
      * @param $p_sFunction
+     *
+     * @return bool
      */
     protected function drawDecorationFunction(Array $p_aDecorations, $p_sFunction)
     {
+        $success = true;
         foreach ($p_aDecorations as $t_oDecoration)
         {
+            /** @var $t_oDecoration Decoration */
+            /** @var $startDate DateTime */
             // Only use Decorations that are actually available this month
-            if (isset($this->m_aDateCoordinates[$t_oDecoration->getStartDate()->format('Ymd')])) {
-                $this->$p_sFunction($t_oDecoration);
-            }
-            #if
+            $startDate = $t_oDecoration->getStartDate();
+            if (isset($this->m_aDateCoordinates[$startDate->format('Ymd')])) {
+                $b = $this->$p_sFunction($t_oDecoration);
+                $success = ($success && $b);
+            }#if
         }#foreach
+
+        $result = $success;
+        return $result;
     }
 
+    /**
+     * @param Decoration $p_oDecoration
+     */
     protected function drawDecorationBackground (Decoration $p_oDecoration)
     {
         // Secular holidays and birthdays should not have a background
@@ -339,28 +414,43 @@ class Calendar extends Image
         }#if
     }
 
+    /**
+     * @param Decoration $p_oDecoration
+     *
+     */
     protected function drawDecoration(Decoration $p_oDecoration)
     {
+        $uResult = null;
+
         if($p_oDecoration->getTitle() === '')
         {
             throw new Exception('Title not set for decoration.');
+        }
+        else
+        {
+            switch($p_oDecoration->getType())
+            {
+                case DecorationType::BIRTHDAY:
+                    $uResult = $this->drawBirthdayDecoration($p_oDecoration);
+                break;
+
+
+                case DecorationType::NATIONAL_HOLIDAY:
+                case DecorationType::SCHOOL_HOLIDAY:
+                case DecorationType::SECULAR_HOLIDAY:
+                    $uResult = $this->drawHolidayDecoration($p_oDecoration);
+                break;
+            }#switch
         }#if
 
-        switch($p_oDecoration->getType())
-        {
-            case DecorationType::BIRTHDAY:
-                $this->drawBirthdayDecoration($p_oDecoration);
-            break;
-
-
-            case DecorationType::NATIONAL_HOLIDAY:
-            case DecorationType::SCHOOL_HOLIDAY:
-            case DecorationType::SECULAR_HOLIDAY:
-                $this->drawHolidayDecoration($p_oDecoration);
-            break;
-        }
+        return $uResult;
     }
 
+    /**
+     * @param Decoration $p_oDecoration
+     *
+     * @return bool
+     */
     protected function drawBirthdayDecoration(Decoration $p_oDecoration)
     {
         $this->m_iFont = ceil($this->getWidth() / 350.8);
@@ -389,7 +479,7 @@ class Calendar extends Image
 
         $iY = self::calculateYFromDimension($oDimensions) - DayBlockDimensions::getBlockHeight()  + $oBoundingBox->getHeight();
 
-        imagecopyresampled(
+        return imagecopyresampled(
             $this->m_rImage, $oScratchImage->getImageResource()
             , $iX, $iY + $oDimensions->getHeight() - $oBoundingBox->getHeight() + $oBoundingBox->getLowerRightY()
             , 0, 0
@@ -398,8 +488,15 @@ class Calendar extends Image
         );
     }
 
+    /**
+     * @param Decoration $p_oDecoration
+     *
+     * @return bool
+     */
     protected function drawHolidayDecoration(Decoration $p_oDecoration)
     {
+        $bResult = false;
+
         $oDate = clone $p_oDecoration->getStartDate();
 
         $this->m_iFont = ceil($this->getWidth() / 350.8);
@@ -459,6 +556,7 @@ class Calendar extends Image
             }#if
         }#if
 
+        $bSuccess = true;
         while ((int) $oDate->format('Ymd') < $p_oDecoration->getEndDate()->format('Ymd'))
         {
             $oDimensions = $this->getDimensionsForDate($oDate);
@@ -477,13 +575,15 @@ class Calendar extends Image
             {
                 if (isset($oScratchImage))
                 {
-                    imagecopyresampled(
+                    $bCopied = imagecopyresampled(
                         $this->m_rImage, $oScratchImage->getImageResource()
                         , $iX, $iY + $oDimensions->getHeight() - $oBoundingBox->getHeight() + $oBoundingBox->getLowerRightY()
                         , 0, 0
                         , DayBlockDimensions::getBlockWidth() * $iDuration, $oScratchImage->getHeight()
                         , $iTextWidth, $oBoundingBox->getHeight()
                     );
+
+                    $bSuccess = ($bSuccess && $bCopied);
                 }
                 else
                 {
@@ -502,30 +602,42 @@ class Calendar extends Image
 
             $oDate->add($this->m_oOneDay);
         }#while
+
+        $bResult = $bSuccess;
+
+        return $bResult;
     }
 
     protected function drawBase()
     {
         // Colour the weekends light gray
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->colorWeekends();
 
         // Draw the outline box
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->drawOutline();
         // The border outline consists 8 parts, 4 sides + 4 rounded corners
 
         // Draw the grid lines
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->drawGrid();
         // The grid is 7x6 with an extra half-height row at the top and bottom for the
         // day names.
 
         // Draw dividers for the week numbers
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->drawDividers();
 
+        /** @noinspection PhpUndefinedMethodInspection */
         $this->writeDayNames();
     }
 
 
 /////////////////////////////// Calculate Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param DateTime $p_oDate
+     */
     protected function calculateDateCoordinates(DateTime $p_oDate)
     {
         $oDate = self::buildDateForDayNumbers($p_oDate);
@@ -554,7 +666,12 @@ class Calendar extends Image
         }#for
     }
 
-    protected static function calculateXFromDimension(Dimensions $oDimensions)
+    /**
+     * @param DayBlockDimensions $oDimensions
+     *
+     * @return int
+     */
+    protected static function calculateXFromDimension(DayBlockDimensions $oDimensions)
     {
         return ($oDimensions->getWidth() + $oDimensions->getLineWidth())
             * $oDimensions->getRow()
@@ -562,7 +679,12 @@ class Calendar extends Image
         ;
     }
 
-    protected static function calculateYFromDimension(Dimensions $oDimensions)
+    /**
+     * @param DayBlockDimensions $oDimensions
+     *
+     * @return int
+     */
+    protected static function calculateYFromDimension(DayBlockDimensions $oDimensions)
     {
         return ($oDimensions->getHeight() + $oDimensions->getLineHeight())
             * $oDimensions->getColumn()
@@ -571,14 +693,17 @@ class Calendar extends Image
     }
 
 ///////////////////////////////// Debug Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param null $p_sMethodName
+     */
     protected function debug($p_sMethodName=null)
     {
         if($this->m_bDebug === true)
         {
+            $aTrace = debug_backtrace();
+
             if(!isset($p_sMethodName))
             {
-
-                $aTrace = debug_backtrace();
                 $aCaller = $aTrace[1];
                 $sMethodName = $aCaller['function'];
             }
@@ -603,7 +728,7 @@ class Calendar extends Image
                 case 'writeDayNumbers':
                     $iX = $aTrace[0]['args'][1];
                     $iY = $aTrace[0]['args'][2];
-                    $oDate = $aTrace[0]['args'][3];
+                    //$oDate = $aTrace[0]['args'][3];
 
                     $this->drawRectangle(
                           $iX, $iY

@@ -1,9 +1,28 @@
 <?php
 
+/**
+ *
+ */
 class ScratchImage extends Image
 {
+    /**
+     * @var bool
+     */
     protected $m_bDebug = false;
 
+    /**
+     * @var array
+     */
+    public $m_aColors;
+
+    /**
+     * @param array $p_aColorSets
+     * @param array $p_sBackgroundColor
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
     public function buildColors($p_aColorSets = array(), $p_sBackgroundColor=array('0xF1', '0x00','0xF1'))
     {
 
@@ -48,6 +67,11 @@ class ScratchImage extends Image
         }
     }
 
+    /**
+     * @param Dimensions $p_oDimensions
+     * @param string $p_sType
+     * @param bool $p_bAlpha
+     */
     public function __construct(Dimensions $p_oDimensions, $p_sType='png', $p_bAlpha=true)
     {
         parent::__construct($p_oDimensions, $p_sType, $p_bAlpha);

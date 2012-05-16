@@ -1,4 +1,8 @@
 <?php
+
+/**
+ *
+ */
 class Decoration extends DatePeriod
 {
 ////////////////////////////////// Properties \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -6,33 +10,63 @@ class Decoration extends DatePeriod
      * @var DecorationType
      */
     protected $m_oType;
+    /**
+     * @var string
+     */
     protected $m_sTitle;
+    /**
+     * @var DateTime
+     */
     protected $m_oStartDate;
+    /**
+     * @var DateInterval
+     */
     protected $m_oInterval;
+    /**
+     * @var DateTime
+     */
     protected $m_oEndDate;
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param DecorationType $m_oType
+     */
     public function setType(DecorationType $m_oType)
     {
         $this->m_oType = $m_oType;
     }
 
+    /**
+     * @return DecorationType
+     */
     public function getType()
     {
         return $this->m_oType;
     }
 
+    /**
+     * @param $p_sTitle
+     */
     public function setTitle($p_sTitle)
     {
         $this->m_sTitle = (string) $p_sTitle;
     }
 
+    /**
+     * @return string
+     */
     public function getTitle()
     {
         return $this->m_sTitle;
     }
 
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+    /**
+     * @param DateTime $p_oStartDate
+     * @param DateInterval $p_oInterval
+     * @param DateTime $p_oEndDate
+     * @param int $p_iOptions
+     */
     public function __construct (DateTime $p_oStartDate, DateInterval $p_oInterval, DateTime $p_oEndDate, $p_iOptions=0) {
         $this->m_oStartDate = $p_oStartDate;
         $this->m_oInterval  = $p_oInterval;
@@ -66,6 +100,9 @@ class Decoration extends DatePeriod
         return (int) ($iSeconds/60/60/24);
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->getStartDate()->format('c')

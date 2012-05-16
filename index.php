@@ -1,7 +1,21 @@
 <?php
 
-    class CustomException extends ErrorException
+    define('LIBRARY_DIRECTORY', realpath('./lib/') . '/');
+
+/**
+ *
+ */
+class CustomException extends ErrorException
     {
+        /**
+         * @param $code
+         * @param $string
+         * @param $file
+         * @param $line
+         * @param $context
+         *
+         * @throws CustomException
+         */
         public static function errorHandlerCallback($code, $string, $file, $line, $context)
         {
             $oException = new self($string, $code);
@@ -11,14 +25,19 @@
             throw $oException;
         }
     }
-    set_error_handler(array("CustomException", "errorHandlerCallback"), E_ALL | E_STRICT);
 
+    set_error_handler(array('CustomException', 'errorHandlerCallback'), E_ALL | E_STRICT);
 
     spl_autoload_register(function ($p_sClassName){
-        require './lib/class.' . $p_sClassName . '.php';
+        require LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
     });
 
-    function BuildDecorations ($iYear)
+/**
+ * @param $iYear
+ *
+ * @return array
+ */
+function BuildDecorations ($iYear)
     {
 //
 //        $aExampleDecorations = array(
@@ -51,7 +70,15 @@
         return $aDecorationList;
     }
 
-    function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
+/**
+ * @param DOMNodeList $p_oDomNodeList
+ * @param $iYear
+ *
+ * @return array
+ *
+ * @throws Exception
+ */
+function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
     {
         $aDecorationList = array();
         for($t_iCounter=0; $t_iCounter<$p_oDomNodeList->length; $t_iCounter++)
@@ -66,6 +93,7 @@
 
             $iDuration = getAttributeValue($oDecoration, 'duration');
 
+            /** @var $oChildren DOMNodeList */
             $oChildren = $oDecoration->childNodes;
 
             $aDecoration = array();
@@ -111,12 +139,20 @@
         return $aDecorationList;
     }
 
-    function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
+/**
+ * @param DOMElement $p_oDOMElement
+ * @param $p_sName
+ *
+ * @return int
+ */
+function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
     {
         $mValue = null;
         if($p_oDOMElement->hasAttribute($p_sName))
         {
-            $mValue = $p_oDOMElement->attributes->getNamedItem($p_sName)->value;
+            /** @var $DOMNode DOMNode */
+            $DOMNode = $p_oDOMElement->attributes->getNamedItem($p_sName);
+            $mValue = $DOMNode->nodeValue;
             if(is_numeric($mValue))
             {
                 $mValue = (int) $mValue;

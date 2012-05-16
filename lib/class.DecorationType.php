@@ -1,4 +1,7 @@
 <?php
+/**
+ *
+ */
 class DecorationType
 {
     const BIRTHDAY         = 'birthday';
@@ -6,13 +9,22 @@ class DecorationType
     const SCHOOL_HOLIDAY   = 'school holiday';
     const SECULAR_HOLIDAY  = 'secular holiday';
 
+    /**
+     * @var string
+     */
     protected $m_sType;
 
+    /**
+     * @param $p_sType
+     */
     public function __construct($p_sType)
     {
         $this->setType($p_sType);
     }
 
+    /**
+     * @param $p_sType
+     */
     protected function setType($p_sType)
     {
         if (!defined('self::' . $p_sType)) {
@@ -25,11 +37,17 @@ class DecorationType
         #if
     }
 
+    /**
+     * @return string
+     */
     public function getType()
     {
         return $this->m_sType;
     }
 
+    /**
+     * @return string
+     */
     public function __toString()
     {
         return $this->getType();
