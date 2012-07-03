@@ -24,7 +24,7 @@ class Calendar extends Image
     /**
      * @var bool
      */
-    protected $m_bDebug=false;
+    protected $m_bDebug=true;
 
     /**
      * @var array DayBlockDimensions
@@ -427,7 +427,8 @@ class Calendar extends Image
             $sEndDate = $t_oDecoration->getEndDate()->format('Ymd');
 
             $aDateCoordinates = $this->getDateCoordinates();
-            $sFirstDate = array_shift(array_keys($aDateCoordinates));
+            $aDates = array_keys($aDateCoordinates);
+            $sFirstDate = array_shift($aDates);
 
             $bCall = false;
             if (isset($aDateCoordinates[$sStartDate])) {
