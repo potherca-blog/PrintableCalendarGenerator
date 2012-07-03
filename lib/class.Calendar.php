@@ -34,7 +34,7 @@ class Calendar extends Image
     /**
      * @var array
      */
-    protected $m_aApliedDecorations = array();
+    protected $m_aAppliedDecorations = array();
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
@@ -603,12 +603,12 @@ class Calendar extends Image
             $iX = self::calculateXFromDimension($oDimensions);
             $iY = self::calculateYFromDimension($oDimensions);
 
-            if(in_array($iX . 'x' . $iY, $this->m_aApliedDecorations))
+            if(in_array($iX . 'x' . $iY, $this->m_aAppliedDecorations))
             {
                 $iY = $iY - $oBoundingBox->getHeight();
             }#if
 
-            array_push($this->m_aApliedDecorations,$iX . 'x' . $iY);
+            array_push($this->m_aAppliedDecorations,$iX . 'x' . $iY);
 
             if ($oDate->format('Ymd') === $p_oDecoration->getStartDate()->format('Ymd'))
             {
