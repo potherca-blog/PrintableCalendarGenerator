@@ -92,12 +92,13 @@ class Calendar extends Image
     }
 
     /**
-     * @param array $p_aColorSets
      * @param array $p_sBackgroundColor
+     *
+     * @throws Exception
      *
      * @return mixed
      */
-    public function buildColors($p_aColorSets = array(), $p_sBackgroundColor=array('0xFF', '0xFF','0xFF'))
+    public function buildColors($p_sBackgroundColor=array('0xFF', '0xFF','0xFF'))
     {
 
         if(!isset($this->m_rImage))
@@ -224,12 +225,47 @@ class Calendar extends Image
     /**
      * @param \DateTime $p_oDate
      *
+     * @throws OutOfRangeException
+     *
      * @return DayBlockDimensions
      */
     protected function getDimensionsForDate(DateTime $p_oDate)
     {
+        //@FIXME: If the given date is out of scope the first or last dateCoordinate should be returned, respectively.
+        $oDimensions = null;
+
         $aDateCoordinates = $this->getDateCoordinates();
-        return $aDateCoordinates[$p_oDate->format('Ymd')];
+        $sDate = $p_oDate->format('Ymd');
+
+        if (!isset($aDateCoordinates[$sDate]))
+        {
+            $aDates = array_keys($aDateCoordinates);
+
+            /** @var $sFirst DateTime */
+            $sFirst = array_shift($aDates);
+            /** @var $sLast DateTime */
+            $sLast = array_pop($aDates);
+
+            if($sDate < $sFirst)
+            {
+                $oDimensions = $aDateCoordinates[$sFirst];
+            }
+            elseif($sDate > $sLast)
+            {
+                $oDimensions = $aDateCoordinates[$sLast];
+            }
+            else
+            {
+                throw new \OutOfRangeException('Given date is out of range and a min or max replacement could not be found.');
+            }
+        }
+        else
+        {
+            /** @var $oDimensions DayBlockDimensions */
+            $oDimensions = $aDateCoordinates[$sDate];
+        }
+
+        return $oDimensions;
     }
 
 /////////////////////////////// Writing Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -417,6 +453,9 @@ class Calendar extends Image
     /**
      * @param Decoration $p_oDecoration
      *
+     * @throws Exception
+     *
+     * @return bool|null
      */
     protected function drawDecoration(Decoration $p_oDecoration)
     {
@@ -462,7 +501,7 @@ class Calendar extends Image
         $oDimensions = $this->getDimensionsForDate($p_oDecoration->getStartDate());
         $iDateWidth = ceil($this->getWidth() / 21.925);//@TODO: Calculate DateWidth
 
-        $iBoxWidth = DayBlockDimensions::getBlockWidth() - $iDateWidth;
+        #$iBoxWidth = DayBlockDimensions::getBlockWidth() - $iDateWidth;
 
         $oScratchImage = new ScratchImage($oBoundingBox);
         $oScratchImage->setFontSize($this->m_iFontSize);
@@ -495,7 +534,7 @@ class Calendar extends Image
      */
     protected function drawHolidayDecoration(Decoration $p_oDecoration)
     {
-        $bResult = false;
+        //$bResult = false;
 
         $oDate = clone $p_oDecoration->getStartDate();
 
@@ -587,7 +626,14 @@ class Calendar extends Image
                 }
                 else
                 {
-                    $iX = $iX + ($iKerning / 2);
+                    if(!isset($iKerning))
+                    {
+                        $iKerning = 0;
+                    }
+                    else
+                    {
+                        $iX = $iX + ($iKerning / 2);
+                    }
 
                     $this->writeTextWithBorder(
                         $p_oDecoration->getTitle()
