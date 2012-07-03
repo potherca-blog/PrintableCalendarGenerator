@@ -75,19 +75,35 @@ class Decoration extends DatePeriod
         parent::__construct($p_oStartDate, $p_oInterval, $p_oEndDate, $p_iOptions);
     }
     /**
-     * @return DateTime
+     * @return \DateTime
      */
-        public function getStartDate()
+    public function getStartDate()
     {
         return $this->m_oStartDate;
     }
 
     /**
-     * @return DateTime
+     * @param \DateTime
      */
-        public function getEndDate()
+    public function setStartDate(\DateTime $p_oStartDate)
+    {
+        $this->m_oStartDate = $p_oStartDate;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getEndDate()
     {
         return $this->m_oEndDate;
+    }
+
+    /**
+     * @param \DateTime
+     */
+    public function setEndDate(\DateTime $p_oEndDate)
+    {
+        $this->m_oEndDate = $p_oEndDate;
     }
 
     /**

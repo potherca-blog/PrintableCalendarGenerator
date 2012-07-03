@@ -206,7 +206,6 @@ class Calendar extends Image
 
         if ($oDate->format('M') === $p_oDate->format('M')) {
             $oDate->sub(new DateInterval('P1W'));
-            return $oDate;
         }#if
 
         return $oDate;
@@ -262,9 +261,7 @@ class Calendar extends Image
         {
             $aDates = array_keys($aDateCoordinates);
 
-            /** @var $sFirst DateTime */
             $sFirst = array_shift($aDates);
-            /** @var $sLast DateTime */
             $sLast = array_pop($aDates);
 
             if($sDate < $sFirst)
@@ -420,21 +417,41 @@ class Calendar extends Image
      */
     protected function drawDecorationFunction(Array $p_aDecorations, $p_sFunction)
     {
-        $success = true;
+        $bTotalResult = true;
         foreach ($p_aDecorations as $t_oDecoration)
         {
             /** @var $t_oDecoration Decoration */
-            /** @var $startDate DateTime */
-            // Only use Decorations that are actually available this month
-            $startDate = $t_oDecoration->getStartDate();
-            if (isset($this->m_aDateCoordinates[$startDate->format('Ymd')])) {
-                $b = $this->$p_sFunction($t_oDecoration);
-                $success = ($success && $b);
+            /** @noinspection PhpUndefinedMethodInspection Method format() is actually defined in  DateTime. Stupid IDE*/
+            $sStartDate = $t_oDecoration->getStartDate()->format('Ymd');
+            /** @noinspection PhpUndefinedMethodInspection Method format() is actually defined in  DateTime. Stupid IDE*/
+            $sEndDate = $t_oDecoration->getEndDate()->format('Ymd');
+
+            $aDateCoordinates = $this->getDateCoordinates();
+            $sFirstDate = array_shift(array_keys($aDateCoordinates));
+
+            $bCall = false;
+            if (isset($aDateCoordinates[$sStartDate])) {
+                // Decoration start date is this month
+                $bCall = true;
+            }
+            elseif($sStartDate < $sFirstDate && isset($aDateCoordinates[$sEndDate]))
+            {
+                // Decoration end date is this month, even if the start date is not
+                $t_oDecoration->setStartDate(DateTime::createFromFormat('Ymd', $sFirstDate));
+                $bCall = true;
+            }
+            else
+            {
+                // Decoration end and start date are not this month
+            }#if
+
+            if ($bCall === true) {
+                $bCallResult = $this->$p_sFunction($t_oDecoration);
+                $bTotalResult = ($bTotalResult && $bCallResult);
             }#if
         }#foreach
 
-        $result = $success;
-        return $result;
+        return $bTotalResult;
     }
 
     /**
