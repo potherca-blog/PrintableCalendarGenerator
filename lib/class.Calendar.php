@@ -33,6 +33,13 @@ class Calendar extends Image
 
     /**
      * @var array
+     *
+     * @TODO: Replace $m_aDecorations array with DecorationCollection object
+     */
+    protected $m_aDecorations = array();
+
+    /**
+     * @var array
      */
     protected $m_aAppliedDecorations = array();
 
@@ -61,6 +68,22 @@ class Calendar extends Image
         return $this->m_aDateCoordinates;
     }
 
+    /**
+     * @return array
+     */
+    public function getDecorations()
+    {
+        return $this->m_aDecorations;
+    }
+
+    /**
+     * @TODO: Replace $p_aDecorations array with DecorationCollection object
+     * @param array $p_aDecorations
+     */
+    public function setDecorations(/*DecorationCollection */$p_aDecorations)
+    {
+        $this->m_aDecorations = $p_aDecorations;
+    }
 // 10 px = $this->getWidth()/175.4
 //  8 px = $this->getWidth()/219.25
 //  6 px = $this->getWidth()/292.33333333333
@@ -141,13 +164,11 @@ class Calendar extends Image
     }
 
     /**
-     * @TODO: Replace $p_aDecorations array with DecorationCollection object
      * @param DateTime $p_oDate
-     * @param array[Decoration] $p_aDecorations
      *
      * @return null|string
      */
-    public function render(DateTime $p_oDate, Array $p_aDecorations)
+    public function render(DateTime $p_oDate)
     {
         // Create an Image
         $this->create();
@@ -157,7 +178,7 @@ class Calendar extends Image
         //@TODO: implements methods needed by $this->drawBase();
         //$this->drawBase();
 
-        $this->drawDecorationBackgrounds($p_aDecorations);
+        $this->drawDecorationBackgrounds();
 
         $this->writeMonth($p_oDate);
 
@@ -165,7 +186,7 @@ class Calendar extends Image
 
         $this->writeDayNumbers($p_oDate);
 
-        $this->drawDecorations($p_aDecorations);
+        $this->drawDecorations();
 
         return $this->output();
     }
@@ -376,23 +397,19 @@ class Calendar extends Image
 
 /////////////////////////////// Drawing Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
-     * @param $p_aDecorations
-     *
      * @return bool
      */
-    protected function drawDecorations($p_aDecorations)
+    protected function drawDecorations()
     {
-        return $this->drawDecorationFunction($p_aDecorations, 'drawDecoration');
+        return $this->drawDecorationFunction($this->getDecorations(), 'drawDecoration');
     }
 
     /**
-     * @param $p_aDecorations
-     *
      * @return bool
      */
-    protected function drawDecorationBackgrounds($p_aDecorations)
+    protected function drawDecorationBackgrounds()
     {
-        return $this->drawDecorationFunction($p_aDecorations, 'drawDecorationBackground');
+        return $this->drawDecorationFunction($this->getDecorations(), 'drawDecorationBackground');
     }
 
     /**

@@ -2,21 +2,20 @@
 
     define('LIBRARY_DIRECTORY', realpath('./lib/') . '/');
 
-/**
- *
- */
-class CustomException extends ErrorException
+    /**
+     *
+     */
+    class CustomException extends ErrorException
     {
         /**
          * @param $code
          * @param $string
          * @param $file
          * @param $line
-         * @param $context
          *
          * @throws CustomException
          */
-        public static function errorHandlerCallback($code, $string, $file, $line, $context)
+        public static function errorHandlerCallback($code, $string, $file, $line /*, $context*/)
         {
             $oException = new self($string, $code);
             $oException->line = $line;
@@ -32,12 +31,12 @@ class CustomException extends ErrorException
         require LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
     });
 
-/**
- * @param $iYear
- *
- * @return array
- */
-function BuildDecorations ($iYear)
+    /**
+     * @param $iYear
+     *
+     * @return array
+     */
+    function BuildDecorations ($iYear)
     {
 //
 //        $aExampleDecorations = array(
@@ -70,19 +69,20 @@ function BuildDecorations ($iYear)
         return $aDecorationList;
     }
 
-/**
- * @param DOMNodeList $p_oDomNodeList
- * @param $iYear
- *
- * @return array
- *
- * @throws Exception
- */
-function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
+    /**
+     * @param DOMNodeList $p_oDomNodeList
+     * @param $iYear
+     *
+     * @return array
+     *
+     * @throws Exception
+     */
+    function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
     {
         $aDecorationList = array();
         for($t_iCounter=0; $t_iCounter<$p_oDomNodeList->length; $t_iCounter++)
         {
+            /** @var $oDecoration DOMElement */
             $oDecoration = $p_oDomNodeList->item($t_iCounter);
 
             $sType = getAttributeValue($oDecoration, 'type');
@@ -139,13 +139,13 @@ function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear
         return $aDecorationList;
     }
 
-/**
- * @param DOMElement $p_oDOMElement
- * @param $p_sName
- *
- * @return int
- */
-function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
+    /**
+     * @param DOMElement $p_oDOMElement
+     * @param $p_sName
+     *
+     * @return int
+     */
+    function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
     {
         $mValue = null;
         if($p_oDOMElement->hasAttribute($p_sName))
@@ -171,13 +171,15 @@ function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
         {
             $oDimensions = new CalendarDimensions($iWidth, $iHeight);
 
-            $oCalendar = new Calendar($oDimensions);
-            $oCalendar->setSourcePath('calender_empty.png');
             $iYear = ($_GET['month']<9?2012:2011);
             $sDate = $iYear . '-' . $_GET['month'];
             $oDate = new DateTime($sDate);
-            //@TODO: Set decorations on $oCalendar object
-            $sOutput = $oCalendar->render($oDate, BuildDecorations($iYear));
+
+            $oCalendar = new Calendar($oDimensions);
+            $oCalendar->setSourcePath('calender_empty.png');
+            $oCalendar->setDecorations(BuildDecorations($iYear));
+
+            $sOutput = $oCalendar->render($oDate);
         }
         else
         {
