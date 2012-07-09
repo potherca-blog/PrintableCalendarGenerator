@@ -1,17 +1,25 @@
-<!DOCTYPE decorations  [
-    <!--============================= Root Element ==============================-->
-    <!ELEMENT decorations (holiday?,birthday?)>
+<!--============================= Root Element ==============================-->
+<!ELEMENT decorations (holidays | birthdays)?>
 
-    <!--============================ Generic Elements ===========================-->
-    <!ELEMENT date (#PCDATA)>
-    <!ELEMENT name (#PCDATA)>
+<!--============================ Generic Elements ===========================-->
+<!ELEMENT date (#PCDATA)>
+<!ELEMENT name (#PCDATA)>
 
-    <!--================================ Holidays ===============================-->
-    <!ELEMENT holiday (name,date) >
-    <!ATTLIST holiday type (NATIONAL_HOLIDAY|SCHOOL_HOLIDAY|SECULAR_HOLIDAY) #REQUIRED >
-    <!ATTLIST holiday duration CDATA "1" #IMPLIED>
+<!--================================ Holidays ===============================-->
+<!ELEMENT holidays (holiday)+>
 
-    <!--=============================== Birthdays ===============================-->
-    <!ELEMENT birthday (name,date)>
-    <!ATTLIST birthday type (FAMILY|FRIEND|AQUANTANCE|OTHER) #IMPLIED> <!-- Just an idea, not implemented anywhere. @see MicroFormats? -->
-]>
+<!ELEMENT holiday ((name,date)|(date,name)) >
+<!-- if no "duration" is set "1" is assumed -->
+<!ATTLIST holiday
+	duration CDATA #IMPLIED
+	type (NATIONAL_HOLIDAY|SCHOOL_HOLIDAY|SECULAR_HOLIDAY|OTHER) #REQUIRED
+>
+
+<!--=============================== Birthdays ===============================-->
+<!ELEMENT birthdays (birthday)+>
+<!ELEMENT birthday ((name,date)|(date,name)) >
+<!-- The #IMPLIED for "type" Just an idea, not implemented anywhere. @see MicroFormats? -->
+<!ATTLIST birthday
+	duration CDATA #IMPLIED
+	type (FAMILY|FRIEND|AQUANTANCE|OTHER) #IMPLIED
+>
