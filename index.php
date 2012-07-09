@@ -55,7 +55,12 @@
             $oDocument = new DOMDocument();
             $oDocument->preserveWhiteSpace = false;
             $oDocument->load($t_sFilePath);
-            //@TODO: Validate XML using $oDocument->validate(); or $oDocument->schemaValidate('./decorations/decorations.dtd');
+
+            $bValide = $oDocument->validate();
+            if($bValide === false){
+                throw new CustomException('XML "' . $t_sFilePath . '" does either not use "decorations.dtd" or does not follow the structure outlined therein.');
+            }
+
             $oBirthdayDecorations = $oDocument->getElementsByTagName('birthday');
             $oHolidayDecorations = $oDocument->getElementsByTagName('holiday');
 
