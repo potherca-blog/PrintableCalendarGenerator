@@ -24,7 +24,7 @@ class Calendar extends Image
     /**
      * @var bool
      */
-    protected $m_bDebug=true;
+    protected $m_bDebug=false;
 
     /**
      * @var array DayBlockDimensions
@@ -155,7 +155,8 @@ class Calendar extends Image
             $this->m_aColors['Week_Nr_Divider'] = imagecolorallocate($this->m_rImage, 0xBF, 0xBC, 0xBC);
 
             $this->m_aColors[DecorationType::BIRTHDAY]         = imagecolorallocatealpha($this->m_rImage, 0xFF, 0xFF, 0x00, 64);
-            $this->m_aColors[DecorationType::NATIONAL_HOLIDAY] = imagecolorallocatealpha($this->m_rImage, 0x00, 0xFF, 0xFF, 64);
+            #$this->m_aColors[DecorationType::NATIONAL_HOLIDAY] = imagecolorallocatealpha($this->m_rImage, 0x00, 0xFF, 0xFF, 64);
+            $this->m_aColors[DecorationType::NATIONAL_HOLIDAY] = imagecolorallocatealpha($this->m_rImage, 0x99, 0x9A, 0x99, 64);
             $this->m_aColors[DecorationType::SCHOOL_HOLIDAY]   = imagecolorallocate($this->m_rImage, 0x99, 0x9A, 0x99);//, 0xFF, 0x00, 0xFF, 64);
             $this->m_aColors[DecorationType::SECULAR_HOLIDAY]  = imagecolorallocatealpha($this->m_rImage, 0x00, 0x00, 0xFF, 64);
 
@@ -525,41 +526,11 @@ class Calendar extends Image
      *
      * @return bool
      */
-    protected function drawBirthdayDecoration(Decoration $p_oDecoration)
+    protected function drawHolidayDecoration(Decoration $p_oDecoration)
     {
-        $this->m_iFont = ceil($this->getWidth() / 350.8);
-        $iBorderThickness = 3;
-        $iBorderColor = $this->m_aColors['black'];
-        $oBoundingBox = $this->getBoundingBoxForText($p_oDecoration->getTitle());
-        $iTextWidth = $oBoundingBox->getWidth();
+        $this->m_iFontSize = ceil($this->getWidth() / 40)+1; // = 45 pixels
 
-        $oDimensions = $this->getDimensionsForDate($p_oDecoration->getStartDate());
-        $iDateWidth = ceil($this->getWidth() / 21.925);//@TODO: Calculate DateWidth
-
-        #$iBoxWidth = DayBlockDimensions::getBlockWidth() - $iDateWidth;
-
-        $oScratchImage = new ScratchImage($oBoundingBox);
-        $oScratchImage->setFontSize($this->m_iFontSize);
-
-        $oScratchImage->writeTextWithBorder(
-            $p_oDecoration->getTitle()
-            , 0, $oBoundingBox->getHeight() - $oBoundingBox->getLowerRightY() - 1
-            , $this->m_aColors['white']
-            , $iBorderThickness
-            , $iBorderColor
-        );
-
-        $iX = self::calculateXFromDimension($oDimensions) + $iDateWidth;
-
-        $iY = self::calculateYFromDimension($oDimensions) - DayBlockDimensions::getBlockHeight()  + $oBoundingBox->getHeight();
-
-        return imagecopyresampled(
-            $this->m_rImage, $oScratchImage->getImageResource()
-            , $iX, $iY + $oDimensions->getHeight() - $oBoundingBox->getHeight() + $oBoundingBox->getLowerRightY()
-            , 0, 0
-            , DayBlockDimensions::getBlockWidth(), $oScratchImage->getHeight()
-            , $iTextWidth, $oBoundingBox->getHeight()
-        );
+        return $this->drawDecorationText($p_oDecoration);
     }
 
     /**
@@ -567,19 +538,43 @@ class Calendar extends Image
      *
      * @return bool
      */
-    protected function drawHolidayDecoration(Decoration $p_oDecoration)
+    protected function drawBirthdayDecoration(Decoration $p_oDecoration)
     {
+        $this->m_iFontSize = ceil($this->getWidth()/43.85);// = 40 pixels
+
+        $iDateWidth = ceil($this->getWidth() / 21.925);//@TODO: Calculate DateWidth
+        //$iDateHeight = ceil($this->getWidth()/29.2333333333334);// Value taken from $this->writeDayNumbers()
+
+        $iYOffset = (-DayBlockDimensions::getBlockHeight()) + $this->m_iFontSize;
+
+        return $this->drawDecorationText($p_oDecoration, -$iDateWidth, $iDateWidth, $iYOffset);
+    }
+
+    /**
+     * @param Decoration $p_oDecoration
+     * @param float $p_dCorrection
+     * @param int $p_iXOffset
+     * @param int $p_iYOffset
+     *
+     * @return bool
+     */
+    protected function drawDecorationText(
+          Decoration $p_oDecoration
+        , $p_dCorrection=0.0
+        , $p_iXOffset=0
+        , $p_iYOffset=0
+    ) {
         //$bResult = false;
 
         $oDate = clone $p_oDecoration->getStartDate();
 
-        $this->m_iFont = ceil($this->getWidth() / 350.8);
         $iBorderThickness = ceil($this->getWidth() / 584.66666666667); // 3 pixels
 
-        $iBorderColor = $this->m_aColors['black'];
         $oBoundingBox = $this->getBoundingBoxForText($p_oDecoration->getTitle());
         $iTextWidth = $oBoundingBox->getWidth();
 
+        $oDimensions = $this->getDimensionsForDate($p_oDecoration->getStartDate());
+        $iDuration = $p_oDecoration->getDuration();
         /*
           @TODO: Take a decoration that spans more than one week into account
 
@@ -589,40 +584,30 @@ class Calendar extends Image
            are on which row (week). The text should be written on the (first)
            row that has the most days.
         */
-        $oDimensions = $this->getDimensionsForDate($p_oDecoration->getStartDate());
-        $iDuration = $p_oDecoration->getDuration();
-        if (7 - $oDimensions->getRow() < $p_oDecoration->getDuration()) {
+        if (7 - $oDimensions->getRow() < $iDuration) {
             // Decoration spans more than one week
             $iDuration = 7 - $oDimensions->getRow();
-        }
-        #if
+        }#if
 
-        if ($iDuration === 1
-                && $iTextWidth <= DayBlockDimensions::getBlockWidth()
-        ) {
-            $iKerning =
-                    (DayBlockDimensions::getBlockWidth() - $iTextWidth)
-                            / strlen($p_oDecoration->getTitle())
-            ;
+        $iBoxWidth = DayBlockDimensions::getBlockWidth() * $iDuration;
+        if($p_dCorrection !== 0.0){
+            $iBoxWidth = $iBoxWidth + $p_dCorrection;
         }
-        else if ($iTextWidth > DayBlockDimensions::getBlockWidth() * $iDuration)
+
+        if ($iTextWidth > $iBoxWidth)
         {
-            $oScratchImage = new ScratchImage($oBoundingBox);
-            $oScratchImage->setFontSize($this->m_iFontSize);
-            if ($p_oDecoration->getTitle() !== '')
-            {
-                $oScratchImage->writeTextWithBorder(
-                    $p_oDecoration->getTitle()
-                    , 0, $oBoundingBox->getHeight() - $oBoundingBox->getLowerRightY() - 1
-                    , $this->m_aColors['white']
-                    , $iBorderThickness
-                    , $iBorderColor
-                );
-            }#if
+            // Text is wider than the space it is supposed to occupy
+            // so it needs to be shrunk
+            $oScratchImage = $this->createScratchImageForDecoration(
+                  $p_oDecoration
+                , $oBoundingBox
+                , $iBorderThickness
+            );
         }
-        else
-        {
-            $iBoxWidth = DayBlockDimensions::getBlockWidth() * $iDuration;
+        else {
+            // Text is not wide enough to fill the space it is supposed to occupy
+            // so it needs to be stretched
+//                && $iTextWidth <= DayBlockDimensions::getBlockWidth() * $iDuration
             $iKerning = ($iBoxWidth - $iTextWidth) / strlen($p_oDecoration->getTitle());
             if ($iKerning < 2) //@TODO: Replace hard-coded value for minimum-kerning with class field
             {
@@ -635,8 +620,8 @@ class Calendar extends Image
         {
             $oDimensions = $this->getDimensionsForDate($oDate);
 
-            $iX = self::calculateXFromDimension($oDimensions);
-            $iY = self::calculateYFromDimension($oDimensions);
+            $iX = self::calculateXFromDimension($oDimensions) + $p_iXOffset;
+            $iY = self::calculateYFromDimension($oDimensions) + $p_iYOffset;
 
             if(in_array($iX . 'x' . $iY, $this->m_aAppliedDecorations))
             {
@@ -649,11 +634,15 @@ class Calendar extends Image
             {
                 if (isset($oScratchImage))
                 {
+                    $iY = $iY + $oDimensions->getHeight() - $oBoundingBox->getHeight() + $oBoundingBox->getLowerRightY();
+
+                    $this->debug(null, $iX, $iY, $iBoxWidth, $oScratchImage->getHeight(), 'blue');
+
                     $bCopied = imagecopyresampled(
-                        $this->m_rImage, $oScratchImage->getImageResource()
-                        , $iX, $iY + $oDimensions->getHeight() - $oBoundingBox->getHeight() + $oBoundingBox->getLowerRightY()
+                          $this->m_rImage, $oScratchImage->getImageResource()
+                        , $iX, $iY
                         , 0, 0
-                        , DayBlockDimensions::getBlockWidth() * $iDuration, $oScratchImage->getHeight()
+                        , $iBoxWidth, $oScratchImage->getHeight()
                         , $iTextWidth, $oBoundingBox->getHeight()
                     );
 
@@ -670,12 +659,14 @@ class Calendar extends Image
                         $iX = $iX + ($iKerning / 2);
                     }
 
+                    $this->debug(null, $iX, $iY+DayBlockDimensions::getBlockHeight()-$this->m_iFontSize, $iBoxWidth, $this->m_iFontSize, 'red');
+                    $iY = $iY + $oDimensions->getHeight();
                     $this->writeTextWithBorder(
                         $p_oDecoration->getTitle()
-                        , $iX, $iY + $oDimensions->getHeight()
+                        , $iX, $iY
                         , $this->m_aColors['white']
                         , $iBorderThickness
-                        , $iBorderColor
+                        , $this->m_aColors['black']
                         , $iKerning
                     );
                 }#if
@@ -687,6 +678,35 @@ class Calendar extends Image
         $bResult = $bSuccess;
 
         return $bResult;
+    }
+
+    /**
+     * @param Decoration $p_oDecoration
+     * @param BoundingBox $p_oBoundingBox
+     * @param int $p_iBorderThickness
+     *
+     * @return \ScratchImage
+     */
+    protected function createScratchImageForDecoration (
+          Decoration $p_oDecoration
+        , BoundingBox $p_oBoundingBox
+        , $p_iBorderThickness
+    ) {
+        $oScratchImage = new ScratchImage($p_oBoundingBox);
+
+        $oScratchImage->setFontSize($this->m_iFontSize);
+
+        if ($p_oDecoration->getTitle() !== '') {
+            $oScratchImage->writeTextWithBorder(
+                $p_oDecoration->getTitle()
+                , 0, $p_oBoundingBox->getHeight() - $p_oBoundingBox->getLowerRightY() - 1
+                , $this->m_aColors['white']
+                , $p_iBorderThickness
+                , $this->m_aColors['black']
+            );
+        }#if
+
+        return $oScratchImage;
     }
 
     protected function drawBase()
@@ -824,6 +844,22 @@ class Calendar extends Image
 //                        , $oDate->format('D M')
 //                        , $this->m_aColors['magenta']
 //                    );
+                break;
+
+                case 'drawDecorationText':
+                    $iX = $aTrace[0]['args'][1];
+                    $iY = $aTrace[0]['args'][2];
+                    $iWidth  = $aTrace[0]['args'][3];
+                    $iHeight = $aTrace[0]['args'][4];
+                    $sColor  = $aTrace[0]['args'][5];
+
+                    $this->drawRectangle(
+                          $iX, $iY
+                        , $iX+$iWidth-$iThickness
+                        , $iY+$iHeight-$iThickness
+                        , $this->m_aColors[$sColor]
+                        , $iThickness
+                    );
                 break;
 
                 case 'writeWeekNumbers':
