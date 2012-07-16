@@ -29,6 +29,6 @@ printed out form.
 ## Example output
 ![calendar][calendar_img]
 
-[calendar_img]: calendar-2012-01.png  "Example output for the month January 2012"
+[calendar_img]: https://github.com/potherca/PrintableCalendarGenerator/raw/master/calendar-2012-01.png  "Example output for the month January 2012"
 
 
