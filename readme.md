@@ -19,7 +19,7 @@ For birthdays, the name of the person is written at the top of the day.
 
 ## Hiatus
 
-Obviously, due to the specific implemenation of the generator (and lack of 
+Obviously, due to the specific implementation of the generator (and lack of 
 proper documentation) it is currently not at a broadly-usable stage. As I 
 continue to use the generator more, it will become more and more 
 genericly-implemented. It is my intention to be able to offer the functionality 
