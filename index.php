@@ -176,7 +176,7 @@
         {
             $oDimensions = new CalendarDimensions($iWidth, $iHeight);
 
-            $iYear = ($_GET['month']<9?2012:2011);
+            $iYear = ($_GET['month']<9?2013:2012);
             $sDate = $iYear . '-' . $_GET['month'];
             $oDate = new DateTime($sDate);
 
