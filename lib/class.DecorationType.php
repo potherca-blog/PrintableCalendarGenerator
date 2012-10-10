@@ -8,6 +8,7 @@ class DecorationType
     const NATIONAL_HOLIDAY = 'national holiday';
     const SCHOOL_HOLIDAY   = 'school holiday';
     const SECULAR_HOLIDAY  = 'secular holiday';
+    const CUSTOM           = 'custom decoration';
 
     /**
      * @var string

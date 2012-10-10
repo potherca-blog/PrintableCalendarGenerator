@@ -31,43 +31,167 @@
         require LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
     });
 
+/**
+ *
+ */
+class DecorationParser
+{
+    /**
+     * @return \DecorationParser
+     */
+    static public function getInstance()
+    {
+        static $self;
+        if(!isset($self))
+        {
+            $self = new self;
+        }
+
+        return $self;
+    }
     /**
      * @param $iYear
      *
      * @return array
+     *
+     * @throws CustomException
      */
-    function BuildDecorations ($iYear)
+    public function buildDecorations ($iYear)
     {
-//
-//        $aExampleDecorations = array(
-//            array(
-//                  'iDate'  => 20111010          // Date the Decoration starts in YYYYMMDD version
-//                , 'sTitle' => 'Test Decoration'
-////                , 'iDuration'  => 1             // Amount of days this Decoration Lasts, set to 1 by default
-//                , 'sType'  => 'BIRTHDAY'        // Type of Decoration, BIRTHDAY | SECULAR_HOLIDAY | NATIONAL_HOLIDAY | SCHOOL_HOLIDAY
-//            )
-//        );
         $aDecorationList = array();
 
-        $aFiles = glob('./decorations/*.xml');
-        foreach($aFiles as $t_sFilePath)
+        $aXmlFiles = $this->fetchXmlFileList();
+        $aIcsFiles = $this->fetchIcsFileList();
+
+        $aXmlDecorations = $this->retrieveDecorationsFromXmlFiles($aXmlFiles, $iYear);
+        $aIcsDecorations = $this->retrieveDecorationsFromIcsFiles($aIcsFiles, $iYear);
+
+        $aDecorationList = array_merge(
+              $aDecorationList
+            , $aXmlDecorations
+            , $aIcsDecorations
+        );
+
+        return $aDecorationList;
+    }
+
+    /**
+     * @return array
+     */
+    protected function fetchXmlFileList()
+    {
+        return $this->fetchFileList('xml');
+    }
+
+    /**
+     * @return array
+     */
+    protected function fetchIcsFileList()
+    {
+        return $this->fetchFileList('ics');
+    }
+
+    /**
+     * @param $p_sExtension
+     *
+     * @return array
+     */
+    protected function fetchFileList($p_sExtension)
+    {
+        $aFiles = glob('./decorations/*.' . $p_sExtension);
+        return $aFiles;
+    }
+
+
+    /**
+     * @param $p_aFiles
+     * @param $p_iYear
+     *
+     * @throws Exception
+     *
+     * @return array
+     */
+    protected function retrieveDecorationsFromIcsFiles($p_aFiles, $p_iYear)
+    {
+        $aDecorationList = array();
+
+        foreach ($p_aFiles as $t_sFilePath)
+        {
+            $oIcal   = new ICalReader($t_sFilePath);
+            $aEvents = $oIcal->events();
+
+            foreach ($aEvents as $aEvent)
+            {
+                if (empty($aEvent['SUMMARY'])) {
+                    throw new Exception('No Title set for event on ' . $aEvent['DTSTART']);
+                }
+                else {
+                    //$oInterval = new DateInterval('P' . $iDuration . 'D');
+
+                    $oStartDate = new Datetime($aEvent['DTSTART']);
+                    $oEndDate = new Datetime($aEvent['DTEND']);
+
+                    $oInterval = $oStartDate->diff($oEndDate);
+
+                    $oDecoration  = new Decoration($oStartDate, $oInterval, $oEndDate);
+
+                    $oDecoration->setTitle($aEvent['SUMMARY']);
+
+                    if($oInterval->days > 0)
+                    {
+                        $sType = 'SCHOOL_HOLIDAY';
+                    }
+                    else
+                    {
+                        $sType = 'CUSTOM';
+                    }#if
+
+                    $oDecoration->setType(new DecorationType($sType));
+
+                    $aDecorationList[] = $oDecoration;
+                }#if
+            }#foreach
+        }#foreach
+
+        return $aDecorationList;
+    }
+
+    /**
+     * @param $p_aFiles
+     * @param $p_iYear
+     *
+     * @throws CustomException
+     *
+     * @return array
+     */
+    protected function retrieveDecorationsFromXmlFiles($p_aFiles, $p_iYear)
+    {
+        $aDecorationList = array();
+
+        foreach ($p_aFiles as $t_sFilePath)
         {
             $oDocument = new DOMDocument();
             $oDocument->preserveWhiteSpace = false;
             $oDocument->load($t_sFilePath);
 
-            $bValide = $oDocument->validate();
-            if($bValide === false){
-                throw new CustomException('XML "' . $t_sFilePath . '" does either not use "decorations.dtd" or does not follow the structure outlined therein.');
+            try {
+                $bValid = $oDocument->validate();
             }
+            catch (CustomException $eInvalid) {
+                $bValid = false;
+            }#catch
+
+            if ($bValid === false) {
+                throw new CustomException('XML "' . $t_sFilePath . '" does either not use "decorations.dtd" or does not follow the structure outlined therein.');
+            }#if
 
             $oBirthdayDecorations = $oDocument->getElementsByTagName('birthday');
-            $oHolidayDecorations = $oDocument->getElementsByTagName('holiday');
+            $oHolidayDecorations  = $oDocument->getElementsByTagName('holiday');
 
             $aDecorationList = array_merge(
-                  $aDecorationList
-                , BuildDecorationArrayFromDOMNodeList($oBirthdayDecorations, $iYear)
-                , BuildDecorationArrayFromDOMNodeList($oHolidayDecorations, $iYear)
+                $aDecorationList
+                , $this->BuildDecorationArrayFromDOMNodeList($oBirthdayDecorations, $p_iYear)
+                , $this->BuildDecorationArrayFromDOMNodeList($oHolidayDecorations, $p_iYear)
             );
         }#foreach
 
@@ -82,7 +206,7 @@
      *
      * @throws Exception
      */
-    function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
+    protected function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList, $iYear)
     {
         $aDecorationList = array();
         for($t_iCounter=0; $t_iCounter<$p_oDomNodeList->length; $t_iCounter++)
@@ -90,13 +214,13 @@
             /** @var $oDecoration DOMElement */
             $oDecoration = $p_oDomNodeList->item($t_iCounter);
 
-            $sType = getAttributeValue($oDecoration, 'type');
+            $sType = $this->getAttributeValue($oDecoration, 'type');
             if(empty($sType))
             {
                 $sType = strtoupper($oDecoration->nodeName);
             }#if
 
-            $iDuration = getAttributeValue($oDecoration, 'duration');
+            $iDuration = $this->getAttributeValue($oDecoration, 'duration');
 
             /** @var $oChildren DOMNodeList */
             $oChildren = $oDecoration->childNodes;
@@ -150,7 +274,7 @@
      *
      * @return int
      */
-    function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
+    protected function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
     {
         $mValue = null;
         if($p_oDOMElement->hasAttribute($p_sName))
@@ -166,7 +290,7 @@
 
         return $mValue;
     }
-
+}
     function run()
     {
         $iWidth  = isset($_GET['width'])?$_GET['width']:1754;
@@ -174,6 +298,7 @@
 
         if(isset($_GET['month']))
         {
+            // Output specific month
             $oDimensions = new CalendarDimensions($iWidth, $iHeight);
 
             $iYear = ($_GET['month']<9?2013:2012);
@@ -182,12 +307,13 @@
 
             $oCalendar = new Calendar($oDimensions);
             $oCalendar->setSourcePath('calender_empty.png');
-            $oCalendar->setDecorations(BuildDecorations($iYear));
+            $oCalendar->setDecorations(DecorationParser::getInstance()->buildDecorations($iYear));
 
             $sOutput = $oCalendar->render($oDate);
         }
         else
         {
+            // Output all months
             $sOutput = '';
 
             $t_iCounter=8;
