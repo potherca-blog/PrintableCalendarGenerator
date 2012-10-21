@@ -28,7 +28,11 @@
     set_error_handler(array('CustomException', 'errorHandlerCallback'), E_ALL | E_STRICT);
 
     spl_autoload_register(function ($p_sClassName){
-        require LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
+        $sClassPath = LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
+
+        if(file_exists($sClassPath)){
+            require $sClassPath;
+        }
     });
 
 /**
@@ -143,7 +147,7 @@ class DecorationParser
                     }
                     else
                     {
-                        $sType = 'CUSTOM';
+                            $sType = 'CUSTOM';
                     }#if
 
                     $oDecoration->setType(new DecorationType($sType));
