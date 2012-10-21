@@ -419,6 +419,28 @@ class Calendar extends Image
     protected function drawDecorationFunction(Array $p_aDecorations, $p_sFunction)
     {
         $bTotalResult = true;
+
+        $cSort = function(Decoration $p_oA, Decoration $p_oB){
+
+            if ($p_oA->getDuration() < $p_oB->getDuration()) {
+                $bResult = 1;
+            }
+            else if ($p_oA->getDuration() > $p_oB->getDuration()) {
+                $bResult = -1;
+            }
+            else {
+                $bResult = 0;
+            }
+
+            return $bResult;
+        };
+
+        /* @NOTE: Decorations need to be sorted by duration, so the longest
+         *        decorations are drawn first, otherwise we'll get decorations
+         *        overlapping later on.
+         */
+        usort($p_aDecorations, $cSort);
+
         foreach ($p_aDecorations as $t_oDecoration)
         {
             /** @var $t_oDecoration Decoration */
@@ -542,7 +564,7 @@ class Calendar extends Image
     {
         $this->m_iFontSize = ceil($this->getWidth()/43.85);// = 40 pixels
 
-        $iDateWidth = ceil($this->getWidth() / 21.925);//@TODO: Calculate DateWidth
+        $iDateWidth = ceil($this->getWidth() / 21.925); //@TODO: Calculate DateWidth
         //$iDateHeight = ceil($this->getWidth()/29.2333333333334);// Value taken from $this->writeDayNumbers()
 
         $iYOffset = (-DayBlockDimensions::getBlockHeight()) + $this->m_iFontSize;
@@ -563,7 +585,8 @@ class Calendar extends Image
         , $p_dCorrection=0.0
         , $p_iXOffset=0
         , $p_iYOffset=0
-    ) {
+    )
+    {
         //$bResult = false;
 
         $oDate = clone $p_oDecoration->getStartDate();
@@ -590,12 +613,11 @@ class Calendar extends Image
         }#if
 
         $iBoxWidth = DayBlockDimensions::getBlockWidth() * $iDuration;
-        if($p_dCorrection !== 0.0){
+        if ($p_dCorrection !== 0.0) {
             $iBoxWidth = $iBoxWidth + $p_dCorrection;
         }
 
-        if ($iTextWidth > $iBoxWidth)
-        {
+        if ($iTextWidth > $iBoxWidth) {
             // Text is wider than the space it is supposed to occupy
             // so it needs to be shrunk
             $oScratchImage = $this->createScratchImageForDecoration(
@@ -616,19 +638,25 @@ class Calendar extends Image
         }#if
 
         $bSuccess = true;
-        while ((int) $oDate->format('Ymd') < $p_oDecoration->getEndDate()->format('Ymd'))
-        {
+        while ((int) $oDate->format('Ymd') < $p_oDecoration->getEndDate()->format('Ymd')) {
             $oDimensions = $this->getDimensionsForDate($oDate);
 
-            $iX = self::calculateXFromDimension($oDimensions) + $p_iXOffset;
-            $iY = self::calculateYFromDimension($oDimensions) + $p_iYOffset;
+            $iX = round(self::calculateXFromDimension($oDimensions) + $p_iXOffset);
+            $iY = round(self::calculateYFromDimension($oDimensions) + $p_iYOffset);
 
-            if(in_array($iX . 'x' . $iY, $this->m_aAppliedDecorations))
+            $sDecorationLocation = $oDimensions->getRow() . '.' . $oDimensions->getColumn();
+            if(
+                   in_array($sDecorationLocation, $this->m_aAppliedDecorations)
+                && $p_oDecoration->getType() != DecorationType::BIRTHDAY    //@TODO: Remove this line once FIXME below is resolved.
+            )
             {
-                $iY = $iY - $oBoundingBox->getHeight();
+                //@FIXME: This logic needs to be expanded to take decorations that are drawn from the top into account  BMP/2012/10/21
+                //        Like Birthdays, which are now skipped to avoid problems.
+                $aValues = array_count_values($this->m_aAppliedDecorations);
+                $iY = $iY - ($oBoundingBox->getHeight() * $aValues[$sDecorationLocation]);
             }#if
 
-            array_push($this->m_aAppliedDecorations,$iX . 'x' . $iY);
+            array_push($this->m_aAppliedDecorations, $sDecorationLocation);
 
             if ($oDate->format('Ymd') === $p_oDecoration->getStartDate()->format('Ymd'))
             {
@@ -660,6 +688,7 @@ class Calendar extends Image
                     }
 
                     $this->debug(null, $iX, $iY+DayBlockDimensions::getBlockHeight()-$this->m_iFontSize, $iBoxWidth, $this->m_iFontSize, 'red');
+
                     $iY = $iY + $oDimensions->getHeight();
                     $this->writeTextWithBorder(
                         $p_oDecoration->getTitle()
@@ -671,7 +700,6 @@ class Calendar extends Image
                     );
                 }#if
             }#if
-
             $oDate->add($this->m_oOneDay);
         }#while
 
@@ -691,7 +719,8 @@ class Calendar extends Image
           Decoration $p_oDecoration
         , BoundingBox $p_oBoundingBox
         , $p_iBorderThickness
-    ) {
+    )
+    {
         $oScratchImage = new ScratchImage($p_oBoundingBox);
 
         $oScratchImage->setFontSize($this->m_iFontSize);
@@ -733,7 +762,6 @@ class Calendar extends Image
         /** @noinspection PhpUndefinedMethodInspection */
         $this->writeDayNames();
     }
-
 
 /////////////////////////////// Calculate Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
@@ -880,6 +908,28 @@ class Calendar extends Image
                 break;
             }#switch
         }#if
+    }
+
+    /**
+     * @param $p_sMessage
+     */
+    private function log($p_sMessage)
+    {
+        if($this->m_bDebug === true)
+        {
+            static $bLoaded;
+
+            $aArguments = func_get_args();
+
+            $sFile = LIBRARY_DIRECTORY . 'debug.calendar.log';
+
+            if($bLoaded !== true){
+                $bLoaded = true;
+                file_put_contents($sFile,'# ==============================================================================');
+            }
+
+            file_put_contents($sFile, var_export($aArguments,true), FILE_APPEND);
+        }
     }
 }
 

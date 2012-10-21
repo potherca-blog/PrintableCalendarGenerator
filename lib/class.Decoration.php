@@ -67,7 +67,12 @@ class Decoration extends DatePeriod
      * @param DateTime $p_oEndDate
      * @param int $p_iOptions
      */
-    public function __construct (DateTime $p_oStartDate, DateInterval $p_oInterval, DateTime $p_oEndDate, $p_iOptions=0) {
+    public function __construct (
+          DateTime $p_oStartDate
+        , DateInterval $p_oInterval
+        , DateTime $p_oEndDate
+        , $p_iOptions=0
+    ) {
         $this->m_oStartDate = $p_oStartDate;
         $this->m_oInterval  = $p_oInterval;
         $this->m_oEndDate   = $p_oEndDate;
