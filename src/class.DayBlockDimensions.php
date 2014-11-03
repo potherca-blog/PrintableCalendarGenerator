@@ -6,56 +6,28 @@
 class DayBlockDimensions extends Dimensions
 {
 ////////////////////////////////// Properties \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    /**
-     * @var Dimensions
-     */
+    /** @var Dimensions*/
     protected static $m_oParent;
-
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iBlockHeight;
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iBlockWidth;
-
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iTopOffset;
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iLeftOffset;
-
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iLineWidth;
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     static protected $m_iLineHeight;
-
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     protected $m_iRow;
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     protected $m_iColumn;
-
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     protected $m_iX;
-    /**
-     * @var integer
-     */
+    /** @var integer*/
     protected $m_iY;
-
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
@@ -186,9 +158,10 @@ class DayBlockDimensions extends Dimensions
         return $this->m_iY;
     }
 
-
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
+     * @throws Exception
+     *
      * @return DayBlockDimensions
      */
     static public function createFromParentDimensions()
@@ -227,4 +200,4 @@ class DayBlockDimensions extends Dimensions
 //////////////////////////////// Helper Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 }
 
-#EOF
+/*EOF*/
