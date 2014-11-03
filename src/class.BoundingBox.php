@@ -42,10 +42,29 @@ class BoundingBox extends Dimensions implements ArrayAccess
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
+     * @return number
+     */
+    public function getWidth()
+    {
+        return abs($this->getLowerLeftX())+$this->getLowerRightX();
+    }
+
+
+    /**
+     * @return number
+     */
+    public function getHeight()
+    {
+        return abs($this->getLowerRightY()) + abs($this->getUpperRightY());
+    }
+
+    /**
      * @param string $p_sMethodName
      * @param array $p_aArguments
      *
-     * @return null
+     * @throws Exception
+     *
+     * @return mixed
      */
     public function __call($p_sMethodName, $p_aArguments)
     {
@@ -75,23 +94,6 @@ class BoundingBox extends Dimensions implements ArrayAccess
         $oInstance->m_aBoundingBox = $p_aBoundingBox;
 
         return $oInstance;
-    }
-
-    /**
-     * @return number
-     */
-    public function getWidth()
-    {
-        return abs($this->getLowerLeftX())+$this->getLowerRightX();
-    }
-
-
-    /**
-     * @return number
-     */
-    public function getHeight()
-    {
-        return abs($this->getLowerRightY()) + abs($this->getUpperRightY());
     }
 
     ////////////////////////// ArrayAccess Public API \\\\\\\\\\\\\\\\\\\\\\\\\\
