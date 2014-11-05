@@ -1,4 +1,7 @@
 <?php
+
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  * This PHP-Class should only read a iCal-File (*.ics), parse it and give an
  * array with its content.

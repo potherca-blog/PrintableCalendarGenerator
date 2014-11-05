@@ -1,12 +1,14 @@
 <?php
 
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  *
  */
-class DayBlockDimensions extends Dimensions
+class DayBlockDimensions extends AbstractDimensions
 {
 ////////////////////////////////// Properties \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    /** @var Dimensions*/
+    /** @var AbstractDimensions*/
     protected static $m_oParent;
     /** @var integer*/
     static protected $m_iBlockHeight;
@@ -160,6 +162,16 @@ class DayBlockDimensions extends Dimensions
 
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
+     * @param $p_iWidth
+     * @param $p_iHeight
+     */
+    final public function  __construct($p_iWidth, $p_iHeight)
+    {
+//        $this->setWidth($p_iWidth);
+//        $this->setHeight($p_iHeight);
+    }
+
+    /**
      * @throws Exception
      *
      * @return DayBlockDimensions
@@ -177,20 +189,20 @@ class DayBlockDimensions extends Dimensions
     }
 
     /**
-     * @param Dimensions $p_oParent
+     * @param AbstractDimensions $p_oParent
      */
-    static public function setDimensionsFromParent(Dimensions $p_oParent)
+    static public function setDimensionsFromParent(AbstractDimensions $p_oParent)
     {
         if (!isset(self::$m_oParent))
         {
             self::$m_oParent = $p_oParent;
 
             // Measurements in comments are pixels in original design
-            self::$m_iBlockHeight = $p_oParent->getHeight()/11.5;            // 216
+            self::$m_iBlockHeight = $p_oParent->getHeight()/11.5;             // 216
             self::$m_iBlockWidth  = $p_oParent->getWidth() / 8.1203703703705; // 216
 
             self::$m_iTopOffset  = $p_oParent->getHeight()/ 7.2390670553936;  // 343
-            self::$m_iLeftOffset = $p_oParent->getWidth() /11.101265822785;  // 158
+            self::$m_iLeftOffset = $p_oParent->getWidth() /11.101265822785;   // 158
 
             self::$m_iLineHeight = $p_oParent->getHeight()/522.94736842105;   // 4.75
             self::$m_iLineWidth  = $p_oParent->getWidth() /417.61904761905;   // 4.2

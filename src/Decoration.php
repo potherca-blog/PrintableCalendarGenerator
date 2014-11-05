@@ -1,30 +1,24 @@
 <?php
 
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  *
  */
-class Decoration extends DatePeriod
+class Decoration extends \Potherca\Base\Data
 {
 ////////////////////////////////// Properties \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-    /**
-     * @var DecorationType
-     */
+    /** @var \DatePeriod */
+    protected $m_oDatePeriod;
+    /** @var DecorationType */
     protected $m_oType;
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $m_sTitle;
-    /**
-     * @var DateTime
-     */
+    /** @var \DateTime */
     protected $m_oStartDate;
-    /**
-     * @var DateInterval
-     */
+    /** @var \DateInterval */
     protected $m_oInterval;
-    /**
-     * @var DateTime
-     */
+    /** @var \DateTime */
     protected $m_oEndDate;
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
@@ -62,22 +56,22 @@ class Decoration extends DatePeriod
 
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
-     * @param DateTime $p_oStartDate
-     * @param DateInterval $p_oInterval
-     * @param DateTime $p_oEndDate
+     * @param \DateTime $p_oStartDate
+     * @param \DateInterval $p_oInterval
+     * @param \DateTime $p_oEndDate
      * @param int $p_iOptions
      */
     public function __construct (
-          DateTime $p_oStartDate
-        , DateInterval $p_oInterval
-        , DateTime $p_oEndDate
+          \DateTime $p_oStartDate
+        , \DateInterval $p_oInterval
+        , \DateTime $p_oEndDate
         , $p_iOptions=0
     ) {
         $this->m_oStartDate = $p_oStartDate;
         $this->m_oInterval  = $p_oInterval;
         $this->m_oEndDate   = $p_oEndDate;
 
-        parent::__construct($p_oStartDate, $p_oInterval, $p_oEndDate, $p_iOptions);
+        $this->m_oDatePeriod = new \DatePeriod($p_oStartDate, $p_oInterval, $p_oEndDate, $p_iOptions);
     }
     /**
      * @return \DateTime
@@ -131,6 +125,27 @@ class Decoration extends DatePeriod
             . $this->getEndDate()->format('c')
         ;
     }
+
+    /**
+     * @param string $name
+     * @param array $arguments
+     *
+     * @throws Exception
+     *
+     * @return mixed
+     */
+    function __call($name, $arguments)
+    {
+        if (is_callable(array($this->m_oDatePeriod, $name))) {
+            return call_user_func_array(
+                array($this->m_oDatePeriod, $name)
+                , $arguments
+            );
+        } else {
+            throw new Exception('Call to undefined method ' . __CLASS__ . '::' . $name);
+        }
+    }
+
 
 //////////////////////////////// Helper Methods \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 

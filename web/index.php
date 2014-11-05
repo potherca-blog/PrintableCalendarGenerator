@@ -1,4 +1,5 @@
 <?php
+namespace Potherca\PrintableCalendarGenerator;
 
 require '../src/bootstrap.php';
 
@@ -12,7 +13,7 @@ if (isset($_GET['month'])) {
 
     $iYear = ($_GET['month'] < 10 ? 2015 : 2014);
     $sDate = $iYear . '-' . $_GET['month'];
-    $oDate = new DateTime($sDate);
+    $oDate = new \DateTime($sDate);
 
     $oCalendar = new Calendar($oDimensions);
     $oCalendar->setDebug($bDebug);
@@ -49,7 +50,9 @@ if (isset($_GET['month'])) {
             $t_iCounter = false;
         }
     }#while
-    $sOutput .= '<style type="text/css"> a {display: block; width: 16%; height: 56%; float: left;} img {width: 100%;};</style>';
+    $sOutput .= <<<HTML
+<style type="text/css"> a {display: block; width: 16%; height: 56%; float: left;} img {width: 100%;};</style>';
+HTML;
 }#if
 
 die($sOutput);

@@ -1,4 +1,7 @@
 <?php
+
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  * @method  int getLowerLeftX()
  * @method  int getLowerLeftY()
@@ -9,7 +12,7 @@
  * @method  int getUpperLeftX()
  * @method  int getUpperLeftY()
  */
-class BoundingBox extends Dimensions implements ArrayAccess
+class BoundingBox extends AbstractDimensions implements \ArrayAccess
 {
     const LOWER_LEFT_X  = 0;
     const LOWER_LEFT_Y  = 1;
@@ -24,12 +27,12 @@ class BoundingBox extends Dimensions implements ArrayAccess
     /**
      * @var array
      */
-    protected $m_aBoundingBox = array();
+    private $m_aBoundingBox = array();
 
     /**
      * @var array
      */
-    protected $m_aMap = array(
+    private $m_aMap = array(
           'LowerLeftX'  => self::LOWER_LEFT_X
         , 'LowerLeftY'  => self::LOWER_LEFT_Y
         , 'LowerRightX' => self::LOWER_RIGHT_X
@@ -42,18 +45,34 @@ class BoundingBox extends Dimensions implements ArrayAccess
 
 ////////////////////////////// Getters and Setters \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
-     * @return number
+     * @param $p_iWidth
+     * @expose
      */
-    public function getWidth()
+    public function setWidth($p_iWidth)
     {
-        return abs($this->getLowerLeftX())+$this->getLowerRightX();
+        $this->m_iWidth = (int) $p_iWidth;
     }
-
 
     /**
      * @return number
      */
-    public function getHeight()
+    final public function getWidth()
+    {
+        return abs($this->getLowerLeftX())+$this->getLowerRightX();
+    }
+
+    /**
+     * @param $p_iHeight
+     */
+    private function setHeight($p_iHeight)
+    {
+        $this->m_iHeight = (int) $p_iHeight;
+    }
+
+    /**
+     * @return number
+     */
+    final public function getHeight()
     {
         return abs($this->getLowerRightY()) + abs($this->getUpperRightY());
     }
@@ -66,16 +85,13 @@ class BoundingBox extends Dimensions implements ArrayAccess
      *
      * @return mixed
      */
-    public function __call($p_sMethodName, $p_aArguments)
+    final public function __call($p_sMethodName, $p_aArguments)
     {
         $iValue = null;
 
-        if(substr($p_sMethodName, 0, 3) === 'get')
-        {
-            $iValue = $this->offsetGet(substr($p_sMethodName,3));
-        }
-        else
-        {
+        if (substr($p_sMethodName, 0, 3) === 'get') {
+            $iValue = $this->offsetGet(substr($p_sMethodName, 3));
+        } else {
             throw new Exception('Call to undefined method "' . $p_sMethodName . '"');
         }#if
 
@@ -84,11 +100,20 @@ class BoundingBox extends Dimensions implements ArrayAccess
 
 ////////////////////////////////// Public API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
+     * @param $p_iWidth
+     * @param $p_iHeight
+     */
+    final public function __construct($p_iWidth, $p_iHeight)
+    {
+        $this->setWidth($p_iWidth);
+        $this->setHeight($p_iHeight);
+    }
+    /**
      * @param array $p_aBoundingBox
      *
      * @return BoundingBox
      */
-    static public function fromArray(Array $p_aBoundingBox)
+    final public static function fromArray(Array $p_aBoundingBox)
     {
         $oInstance = new self(null, null);
         $oInstance->m_aBoundingBox = $p_aBoundingBox;
@@ -101,7 +126,8 @@ class BoundingBox extends Dimensions implements ArrayAccess
      * @param $p_sOffset
      * @param $p_mValue
      */
-    public function offsetSet($p_sOffset, $p_mValue) {
+    final public function offsetSet($p_sOffset, $p_mValue)
+    {
         if (is_null($p_sOffset)) {
             $this->m_aBoundingBox[] = $p_mValue;
         } else {
@@ -113,14 +139,16 @@ class BoundingBox extends Dimensions implements ArrayAccess
      * @param $p_sOffset
      * @return bool
      */
-    public function offsetExists($p_sOffset) {
+    final public function offsetExists($p_sOffset)
+    {
         return isset($this->m_aBoundingBox[$p_sOffset]);
     }
 
     /**
      * @param $p_sOffset
      */
-    public function offsetUnset($p_sOffset) {
+    final public function offsetUnset($p_sOffset)
+    {
         unset($this->m_aBoundingBox[$p_sOffset]);
     }
 
@@ -129,18 +157,18 @@ class BoundingBox extends Dimensions implements ArrayAccess
      *
      * @return integer
      */
-    public function offsetGet($p_sOffset) {
+    final public function offsetGet($p_sOffset)
+    {
         $iValue = null;
 
-        if(isset($this->m_aBoundingBox[$p_sOffset]))
-        {
+        if (isset($this->m_aBoundingBox[$p_sOffset])) {
             // Numeric offset, compatible with imagettfbbox() return value
             $iValue = $this->m_aBoundingBox[$p_sOffset];
-        }
-        elseif($this->m_aBoundingBox[$this->m_aMap[$p_sOffset]])
-        {
+        } elseif ($this->m_aBoundingBox[$this->m_aMap[$p_sOffset]]) {
             // String offset use bounding box map to find value
             $iValue = $this->m_aBoundingBox[$this->m_aMap[$p_sOffset]];
+        } else {
+            // Nothing else
         }
 
         return $iValue;

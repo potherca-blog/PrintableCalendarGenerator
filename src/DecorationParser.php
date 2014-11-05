@@ -1,15 +1,19 @@
 <?php
 
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  *
  */
-class DecorationParser
+class DecorationParser extends \Potherca\Base\Logic
 {
+    ////////////////////////////// CLASS PROPERTIES \\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
      * @var string
      */
     private $m_sDecorationsDirectory;
 
+    //////////////////////////// SETTERS AND GETTERS \\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
      * @return string
      */
@@ -26,12 +30,13 @@ class DecorationParser
         $this->m_sDecorationsDirectory = (string) $p_sDecorationsDirectory;
     }
 
+    //////////////////////////////// PUBLIC API \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
      * @param $iYear
      *
      * @return array
      *
-     * @throws CustomException
+     * @throws Exception
      */
     public function buildDecorations($iYear)
     {
@@ -52,10 +57,11 @@ class DecorationParser
         return $aDecorationList;
     }
 
+    ////////////////////////////// UTILITY METHODS \\\\\\\\\\\\\\\\\\\\\\\\\\\\\
     /**
      * @return array
      */
-    protected function fetchXmlFileList()
+    private function fetchXmlFileList()
     {
         return $this->fetchFileList('xml');
     }
@@ -65,7 +71,7 @@ class DecorationParser
      *
      * @return array
      */
-    protected function fetchFileList($p_sExtension)
+    private function fetchFileList($p_sExtension)
     {
         $aFiles = glob($this->m_sDecorationsDirectory .'*.' . $p_sExtension);
         return $aFiles;
@@ -74,7 +80,7 @@ class DecorationParser
     /**
      * @return array
      */
-    protected function fetchIcsFileList()
+    private function fetchIcsFileList()
     {
         return $this->fetchFileList('ics');
     }
@@ -83,36 +89,39 @@ class DecorationParser
      * @param $p_aFiles
      * @param $p_iYear
      *
-     * @throws CustomException
+     * @throws Exception
      *
      * @return array
      */
-    protected function retrieveDecorationsFromXmlFiles($p_aFiles, $p_iYear)
+    private function retrieveDecorationsFromXmlFiles($p_aFiles, $p_iYear)
     {
         $aDecorationList = array();
 
         foreach ($p_aFiles as $t_sFilePath) {
-            $oDocument = new DOMDocument();
+            $oDocument = new \DOMDocument();
             $oDocument->preserveWhiteSpace = false;
             $oDocument->load($t_sFilePath);
 
             try {
                 $bValid = $oDocument->validate();
-            } catch (CustomException $eInvalid) {
+            } catch (Exception $eInvalid) {
                 $bValid = false;
             }
 
             if ($bValid === false) {
-                throw new CustomException('XML "' . $t_sFilePath . '" does either not use "decorations.dtd" or does not follow the structure outlined therein.');
+                throw new Exception(
+                    'XML "' . $t_sFilePath . '" does either not use "decorations.dtd"'
+                    .'or does not follow the structure outlined therein.'
+                );
             }
 
             $oBirthdayDecorations = $oDocument->getElementsByTagName('birthday');
             $oHolidayDecorations = $oDocument->getElementsByTagName('holiday');
 
             $aDecorationList = array_merge(
-                $aDecorationList
-                , $this->BuildDecorationArrayFromDOMNodeList($oBirthdayDecorations, $p_iYear)
-                , $this->BuildDecorationArrayFromDOMNodeList($oHolidayDecorations, $p_iYear)
+                $aDecorationList,
+                $this->buildDecorationArrayFromDOMNodeList($oBirthdayDecorations, $p_iYear),
+                $this->buildDecorationArrayFromDOMNodeList($oHolidayDecorations, $p_iYear)
             );
         }
 
@@ -120,19 +129,19 @@ class DecorationParser
     }
 
     /**
-     * @param DOMNodeList $p_oDomNodeList
+     * @param \DOMNodeList $p_oDomNodeList
      * @param $iYear
      *
      * @return array
      *
      * @throws Exception
      */
-    protected function BuildDecorationArrayFromDOMNodeList(DOMNodeList $p_oDomNodeList,  $iYear)
+    private function buildDecorationArrayFromDOMNodeList(\DOMNodeList $p_oDomNodeList,  $iYear)
     {
         $aDecorationList = array();
 
         for ($t_iCounter = 0; $t_iCounter < $p_oDomNodeList->length; $t_iCounter++) {
-            /** @var $oDecoration DOMElement */
+            /** @var $oDecoration \DOMElement */
             $oDecoration = $p_oDomNodeList->item($t_iCounter);
 
             $sType = $this->getAttributeValue($oDecoration, 'type');
@@ -142,7 +151,7 @@ class DecorationParser
 
             $iDuration = $this->getAttributeValue($oDecoration, 'duration');
 
-            /** @var $oChildren DOMNodeList */
+            /** @var $oChildren \DOMNodeList */
             $oChildren = $oDecoration->childNodes;
 
             $aDecoration = array();
@@ -153,7 +162,7 @@ class DecorationParser
             }
 
             $iDuration = isset($iDuration) ? $iDuration : 1;
-            $oInterval = new DateInterval('P' . $iDuration . 'D');
+            $oInterval = new \DateInterval('P' . $iDuration . 'D');
             $sDate = $aDecoration['date'];
             try {
                 if ($aDecoration['name'] === '') {
@@ -168,7 +177,7 @@ class DecorationParser
                     $sDate = preg_replace('/[0-9]{4}/', $iYear, $sDate);
                 }
 
-                $oStartDate = new Datetime($sDate);
+                $oStartDate = new \DateTime($sDate);
 
                 $oEndDate = clone $oStartDate;
                 $oEndDate->add($oInterval);
@@ -189,16 +198,16 @@ class DecorationParser
     }
 
     /**
-     * @param DOMElement $p_oDOMElement
+     * @param \DOMElement $p_oDOMElement
      * @param $p_sName
      *
      * @return int
      */
-    protected function getAttributeValue(DOMElement $p_oDOMElement, $p_sName)
+    private function getAttributeValue(\DOMElement $p_oDOMElement, $p_sName)
     {
         $mValue = null;
         if ($p_oDOMElement->hasAttribute($p_sName)) {
-            /** @var $DOMNode DOMNode */
+            /** @var $DOMNode \DOMNode */
             $DOMNode = $p_oDOMElement->attributes->getNamedItem($p_sName);
             $mValue = $DOMNode->nodeValue;
             if (is_numeric($mValue)) {
@@ -217,7 +226,7 @@ class DecorationParser
      *
      * @return array
      */
-    protected function retrieveDecorationsFromIcsFiles($p_aFiles, $p_iYear)
+    private function retrieveDecorationsFromIcsFiles($p_aFiles, $p_iYear)
     {
         $aDecorationList = array();
 
@@ -249,10 +258,10 @@ class DecorationParser
                     // There is nothing else
                 }
 
-                //$oInterval = new DateInterval('P' . $iDuration . 'D');
+                //$oInterval = new \DateInterval('P' . $iDuration . 'D');
 
-                $oStartDate = new Datetime($aEvent['DTSTART']);
-                $oEndDate = new Datetime($aEvent['DTEND']);
+                $oStartDate = new \Datetime($aEvent['DTSTART']);
+                $oEndDate = new \Datetime($aEvent['DTEND']);
 
                 $oInterval = $oStartDate->diff($oEndDate);
 
@@ -277,3 +286,5 @@ class DecorationParser
         return $aDecorationList;
     }
 }
+
+/*EOF*/

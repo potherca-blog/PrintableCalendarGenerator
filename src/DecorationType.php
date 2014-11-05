@@ -1,8 +1,11 @@
 <?php
+
+namespace Potherca\PrintableCalendarGenerator;
+
 /**
  *
  */
-class DecorationType
+class DecorationType extends \Potherca\Base\Data //@TODO: Create an ENUM type? Maybe in base? Or use ARC?
 {
     const BIRTHDAY         = 'birthday';
     const NATIONAL_HOLIDAY = 'national holiday';
@@ -25,15 +28,16 @@ class DecorationType
 
     /**
      * @param $p_sType
+     *
+     * @throws Exception
      */
     protected function setType($p_sType)
     {
-        if (!defined('self::' . $p_sType)) {
-            throw new Exception('There is no type "' . $p_sType . '"');
-        }
-        else
-        {
-            $this->m_sType = constant(__CLASS__ . '::' . $p_sType);
+        $sType = trim($p_sType);
+        if (!defined('self::' . $sType)) {
+            throw new Exception('There is no type "' . $sType . '"');
+        } else {
+            $this->m_sType = constant(__CLASS__ . '::' . $sType);
         }
         #if
     }
