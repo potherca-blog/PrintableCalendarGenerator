@@ -1,16 +1,12 @@
 <?php
-define('LIBRARY_DIRECTORY', __DIR__ . '/');
 
-require LIBRARY_DIRECTORY . 'Base/abstract.Base.php';
+namespace Potherca\PrintableCalendarGenerator;
 
-spl_autoload_register(function ($p_sClassName){
-    $sClassPath = LIBRARY_DIRECTORY . 'class.' . $p_sClassName . '.php';
 
-    if(file_exists($sClassPath)){
-        require $sClassPath;
-    }
+require __DIR__ . '/../vendor/autoload.php';
+
+set_error_handler(function ($p_iCode, $p_sMessage, $p_sFile, $p_iLine ) {
+    throw new \Potherca\PrintableCalendarGenerator\Exception($p_sMessage, 0, $p_iCode, $p_sFile, $p_iLine);
 });
-
-set_error_handler(array('CustomException', 'errorHandlerCallback'), E_ALL | E_STRICT);
 
 /*EOF*/
