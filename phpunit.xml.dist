@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.5/phpunit.xsd"
+
+backupGlobals="false"
+backupStaticAttributes="false"
+bootstrap="./src/bootstrap.php"
+cacheTokens="true"
+colors="true"
+
+convertErrorsToExceptions="true"
+convertNoticesToExceptions="true"
+convertWarningsToExceptions="true"
+
+forceCoversAnnotation="true"
+
+mapTestClassNameToCoveredClassName="true"
+
+processIsolation="false"
+
+stopOnError="false"
+stopOnFailure="false"
+stopOnIncomplete="false"
+stopOnSkipped="false"
+
+strict="true"
+checkForUnintentionallyCoveredCode="true"
+beStrictAboutOutputDuringTests="true"
+beStrictAboutTestSize="true"
+beStrictAboutTodoAnnotatedTests="true"
+
+verbose="true"
+>
+    <testsuites>
+        <testsuite name="PrintableCalendarGenerator">
+            <directory suffix=".php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+        <log type="coverage-text" target="php://stdout"  />
+        <log type="testdox-text" target="php://stdout"/>
+    </logging>
+
+</phpunit>
