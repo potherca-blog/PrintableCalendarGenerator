@@ -1,0 +1,10 @@
+# General Ignorance
+vendor/
+phpunit.xml
+
+# Project Specific Files
+decorations/*.ics
+decorations/*.xml
+debug.calendar.log
+
+#EOF
